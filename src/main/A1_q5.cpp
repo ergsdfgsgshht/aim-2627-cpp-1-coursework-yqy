@@ -18,7 +18,44 @@ namespace aim::q5 {
 
 
 // BEGIN IMPLEMENTATION
-std::vector<std::vector<int>> risk(const std::vector<std::string>& grid) { throw std::runtime_error("TODO"); }
+std::vector<std::vector<int>> risk(const std::vector<std::string>& grid) {
+    const std::size_t rows = grid.size();
+    if (rows == 0) {
+        return {};
+    }
+    // 第一步：完整验证整张地图，任何一项不满足都抛异常，不产出部分结果
+    const std::size_t cols = grid[0].size();
+    if (cols == 0) {
+        throw std::invalid_argument("map has a row with zero columns");
+    }
+    for (const std::string& row : grid) {
+        if (row.size() != cols) {
+            throw std::invalid_argument("map rows have inconsistent lengths");
+        }
+        for (char cell : row) {
+            if (cell != '.' && cell != '#') {
+                throw std::invalid_argument("map contains a character other than . and #");
+            }
+        }
+    }
+    // 第二步：计算风险图；越界方向不算障碍，斜对角不算邻居
+    std::vector<std::vector<int>> out(rows, std::vector<int>(cols, 0));
+    for (std::size_t r = 0; r < rows; ++r) {
+        for (std::size_t c = 0; c < cols; ++c) {
+            if (grid[r][c] == '#') {
+                out[r][c] = -1;
+                continue;
+            }
+            int count = 0;
+            if (r > 0 && grid[r - 1][c] == '#') ++count;          // 上
+            if (r + 1 < rows && grid[r + 1][c] == '#') ++count;    // 下
+            if (c > 0 && grid[r][c - 1] == '#') ++count;           // 左
+            if (c + 1 < cols && grid[r][c + 1] == '#') ++count;    // 右
+            out[r][c] = count;
+        }
+    }
+    return out;
+}
 // END IMPLEMENTATION
 }
 
