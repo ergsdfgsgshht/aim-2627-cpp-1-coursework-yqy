@@ -18,7 +18,39 @@ namespace aim::q6 {
 struct Target { int id; int x; int y; int hp; bool visible; };
 
 // BEGIN IMPLEMENTATION
-int select_target(const std::vector<Target>& targets, int max_range) { throw std::runtime_error("TODO"); }
+int select_target(const std::vector<Target>& targets, int max_range) {
+    if (max_range < 0 || targets.empty()) {
+        return -1;
+    }
+    const long long range_sq = static_cast<long long>(max_range) * max_range;
+    bool found = false;
+    int best_id = -1;
+    int best_hp = 0;
+    long long best_dist = 0;
+    for (const Target& t : targets) {
+        if (!t.visible || t.hp <= 0) {
+            continue;
+        }
+        // 坐标绝对值可达 1e6，平方和最高 2e12，必须用 long long 计算
+        const long long dist_sq =
+            static_cast<long long>(t.x) * t.x + static_cast<long long>(t.y) * t.y;
+        if (dist_sq > range_sq) {
+            continue;
+        }
+        // 三级比较: hp 小者胜; hp 平局比平方距离; 仍平局比 id(输入顺序不参与)
+        const bool better =
+            !found || t.hp < best_hp
+            || (t.hp == best_hp && dist_sq < best_dist)
+            || (t.hp == best_hp && dist_sq == best_dist && t.id < best_id);
+        if (better) {
+            found = true;
+            best_id = t.id;
+            best_hp = t.hp;
+            best_dist = dist_sq;
+        }
+    }
+    return best_id;
+}
 // END IMPLEMENTATION
 }
 
