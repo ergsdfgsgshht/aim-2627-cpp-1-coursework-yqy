@@ -18,7 +18,30 @@ namespace aim::q7 {
 struct FireResult { int shots; int rejected; int ammo; int heat; };
 
 // BEGIN IMPLEMENTATION
-FireResult simulate(int ammo, int heat, int cool, int shot_heat, const std::vector<int>& requests) { throw std::runtime_error("TODO"); }
+FireResult simulate(int ammo, int heat, int cool, int shot_heat, const std::vector<int>& requests) {
+    FireResult result{0, 0, ammo, heat};
+    for (int request : requests) {
+        // 每帧第一步固定为冷却; 为负归零
+        result.heat -= cool;
+        if (result.heat < 0) {
+            result.heat = 0;
+        }
+        if (request == 1) {
+            // 用冷却后的热量判定; 等于上限 100 仍允许发射
+            const bool can_fire = result.ammo > 0 && result.heat + shot_heat <= 100;
+            if (can_fire) {
+                --result.ammo;
+                result.heat += shot_heat;
+                ++result.shots;
+            } else {
+                // 拒绝不扣弹、不加热量
+                ++result.rejected;
+            }
+        }
+        // 请求为 0: 本帧只执行了冷却
+    }
+    return result;
+}
 // END IMPLEMENTATION
 }
 
