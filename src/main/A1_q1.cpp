@@ -25,23 +25,18 @@ long long ratio(long long hp, long long max_hp) {
     return hp * 100 / max_hp;
 }
 std::string report(int id, long long hp, long long max_hp, int battery) {
-    long long percent = ratio(hp, max_hp);
-    std::string state;
-    if (battery >= 60 && battery <= 100) {
-        state = "OK";
-    }else if (battery < 60 && battery >= 20) {
-        state = "WARNING";
-    }else if (battery < 20 && battery >= 0) {
-        state = "LOW";
-    }else {
-        state = "INVALID";
-    }
+    const long long percent = ratio(hp, max_hp);
+    // 电量先夹到 [0,100], 再按规范化后的值分档; 不存在 INVALID 档位
+    if (battery < 0) battery = 0;
+    if (battery > 100) battery = 100;
+    const char* state = battery >= 60 ? "OK" : (battery >= 20 ? "WARNING" : "LOW");
     std::string result = "ID=" + std::to_string(id)
-                   + ";HP=" + std::to_string(percent)
-                   + ";BAT=" + (percent == -1 ? std::string("invalid") : std::to_string(battery))
+                   + ";HP=" + (percent == -1 ? std::string("INVALID") : std::to_string(percent))
+                   + ";BAT=" + std::to_string(battery)
                    + ";STATE=" + state;
     return result;
 }
+// END IMPLEMENTATION
 }
 
 #define CHECK(...) do { if (!(__VA_ARGS__)) throw std::runtime_error("check failed"); } while(false)
