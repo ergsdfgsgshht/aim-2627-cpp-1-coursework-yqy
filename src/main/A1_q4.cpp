@@ -18,7 +18,40 @@ namespace aim::q4 {
 struct CommandResult { long long value; int accepted; int rejected; };
 
 // BEGIN IMPLEMENTATION
-CommandResult execute(const std::vector<std::string>& lines) { throw std::runtime_error("TODO"); }
+CommandResult execute(const std::vector<std::string>& lines) {
+    CommandResult result{0, 0, 0};
+    constexpr long long kLimit = 1000000LL;
+    for (const std::string& line : lines) {
+        std::istringstream input(line);
+        std::string op;
+        bool ok = false;
+        long long candidate = 0;
+        if (input >> op) {
+            if (op == "ADD" || op == "SET") {
+                long long x = 0;
+                std::string extra;
+                // 参数必须恰好一个：能读出一个整数，且之后读不出任何多余字段
+                if (input >> x && !(input >> extra) && x >= -kLimit && x <= kLimit) {
+                    candidate = (op == "ADD") ? result.value + x : x;
+                    ok = candidate >= -kLimit && candidate <= kLimit;
+                }
+            } else if (op == "RESET") {
+                std::string extra;
+                if (!(input >> extra)) {  // RESET 不允许任何参数
+                    candidate = 0;
+                    ok = true;
+                }
+            }
+        }
+        if (ok) {
+            result.value = candidate;
+            ++result.accepted;
+        } else {
+            ++result.rejected;
+        }
+    }
+    return result;
+}
 // END IMPLEMENTATION
 }
 
